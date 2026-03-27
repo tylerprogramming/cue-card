@@ -2,10 +2,18 @@ import SwiftUI
 
 @main
 struct CueCardApp: App {
-    @State private var settings = AppSettings()
+    @State private var settings: AppSettings
     @State private var storage = ScriptStorage()
-    @State private var scrollEngine = ScrollEngine()
+    @State private var scrollEngine: ScrollEngine
     @State private var windowManager = WindowManager()
+
+    init() {
+        let s = AppSettings()
+        _settings = State(initialValue: s)
+        let engine = ScrollEngine()
+        engine.speed = s.scrollSpeed
+        _scrollEngine = State(initialValue: engine)
+    }
 
     var body: some Scene {
         MenuBarExtra("CueCard", systemImage: "text.below.photo") {
