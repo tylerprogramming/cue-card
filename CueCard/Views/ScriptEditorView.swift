@@ -4,6 +4,7 @@ struct ScriptEditorView: View {
     @Environment(ScriptStorage.self) private var storage
     @State private var editText: String = ""
     @State private var editTitle: String = "Untitled"
+    @State private var editingScriptId: UUID?
     @State private var showFileImporter = false
 
     var body: some View {
@@ -21,9 +22,13 @@ struct ScriptEditorView: View {
                 }
 
                 Button("Save") {
-                    let script = Script(title: editTitle, body: editText)
-                    storage.currentScript = script
+                    let script = Script(
+                        id: editingScriptId ?? UUID(),
+                        title: editTitle,
+                        body: editText
+                    )
                     storage.save(script: script)
+                    editingScriptId = script.id
                 }
                 .buttonStyle(.borderedProminent)
                 .padding(.horizontal)
@@ -37,12 +42,8 @@ struct ScriptEditorView: View {
                 .padding(8)
         }
         .frame(minWidth: 400, minHeight: 400)
-        .onAppear {
-            if let script = storage.currentScript {
-                editText = script.body
-                editTitle = script.title
-            }
-        }
+        .onAppear { syncFromStorage() }
+        .onChange(of: storage.currentScript?.id) { syncFromStorage() }
         .fileImporter(
             isPresented: $showFileImporter,
             allowedContentTypes: [.plainText, .text],
@@ -57,7 +58,16 @@ struct ScriptEditorView: View {
             if let content = try? String(contentsOf: url, encoding: .utf8) {
                 editText = content
                 editTitle = url.deletingPathExtension().lastPathComponent
+                editingScriptId = nil
             }
+        }
+    }
+
+    private func syncFromStorage() {
+        if let script = storage.currentScript {
+            editText = script.body
+            editTitle = script.title
+            editingScriptId = script.id
         }
     }
 }
