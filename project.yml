@@ -1,0 +1,24 @@
+name: CueCard
+options:
+  bundleIdPrefix: com.tylerreed
+  deploymentTarget:
+    macOS: "15.0"
+  xcodeVersion: "16"
+
+settings:
+  base:
+    SWIFT_VERSION: "6.0"
+
+targets:
+  CueCard:
+    type: application
+    platform: macOS
+    deploymentTarget: "15.0"
+    sources:
+      - path: CueCard
+    settings:
+      base:
+        INFOPLIST_FILE: CueCard/Info.plist
+        PRODUCT_BUNDLE_IDENTIFIER: com.tylerreed.CueCard
+        MARKETING_VERSION: "1.0"
+        CURRENT_PROJECT_VERSION: "1"
