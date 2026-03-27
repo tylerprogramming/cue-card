@@ -35,57 +35,14 @@ struct MenuBarView: View {
                 }
             }
 
-            HStack {
-                Text("Speed")
-                    .font(.caption)
-                Slider(value: $settings.scrollSpeed, in: 0.1...5.0, step: 0.1)
-                    .frame(width: 120)
-                Text(String(format: "%.1fx", settings.scrollSpeed))
-                    .font(.caption.monospacedDigit())
-                    .frame(width: 30)
-            }
+            SettingsSlider(label: "Speed", value: $settings.scrollSpeed, range: 0.1...5.0, step: 0.1, format: "%.1fx", width: 120)
 
             Divider()
 
-            HStack {
-                Text("Font Size")
-                    .font(.caption)
-                Slider(value: $settings.fontSize, in: 16...72, step: 2)
-                    .frame(width: 100)
-                Text("\(Int(settings.fontSize))pt")
-                    .font(.caption.monospacedDigit())
-                    .frame(width: 35)
-            }
-
-            HStack {
-                Text("Opacity")
-                    .font(.caption)
-                Slider(value: $settings.backgroundOpacity, in: 0.1...1.0, step: 0.05)
-                    .frame(width: 100)
-                Text("\(Int(settings.backgroundOpacity * 100))%")
-                    .font(.caption.monospacedDigit())
-                    .frame(width: 35)
-            }
-
-            HStack {
-                Text("Width")
-                    .font(.caption)
-                Slider(value: $settings.windowWidth, in: 250...800, step: 10)
-                    .frame(width: 100)
-                Text("\(Int(settings.windowWidth))")
-                    .font(.caption.monospacedDigit())
-                    .frame(width: 35)
-            }
-
-            HStack {
-                Text("Height")
-                    .font(.caption)
-                Slider(value: $settings.windowHeight, in: 150...600, step: 10)
-                    .frame(width: 100)
-                Text("\(Int(settings.windowHeight))")
-                    .font(.caption.monospacedDigit())
-                    .frame(width: 35)
-            }
+            SettingsSlider(label: "Font Size", value: $settings.fontSize, range: 16...72, step: 2, format: "%.0fpt")
+            SettingsSlider(label: "Opacity", value: $settings.backgroundOpacity, range: 0.1...1.0, step: 0.05, format: "%.0f%%", scale: 100)
+            SettingsSlider(label: "Width", value: $settings.windowWidth, range: 250...800, step: 10, format: "%.0f")
+            SettingsSlider(label: "Height", value: $settings.windowHeight, range: 150...600, step: 10, format: "%.0f")
 
             Divider()
 
@@ -115,14 +72,58 @@ struct MenuBarView: View {
         .frame(width: 240)
         .onChange(of: settings.fontSize) { settings.save() }
         .onChange(of: settings.backgroundOpacity) { settings.save() }
-        .onChange(of: settings.scrollSpeed) { scrollEngine.speed = settings.scrollSpeed }
-        .onChange(of: settings.windowWidth) {
-            windowManager.resize(width: settings.windowWidth, height: settings.windowHeight)
+        .onChange(of: settings.scrollSpeed) {
+            scrollEngine.speed = settings.scrollSpeed
             settings.save()
         }
-        .onChange(of: settings.windowHeight) {
-            windowManager.resize(width: settings.windowWidth, height: settings.windowHeight)
-            settings.save()
+        .onChange(of: settings.windowWidth) { resizeAndSave() }
+        .onChange(of: settings.windowHeight) { resizeAndSave() }
+    }
+
+    private func resizeAndSave() {
+        windowManager.resize(width: settings.windowWidth, height: settings.windowHeight)
+        settings.save()
+    }
+}
+
+private struct SettingsSlider: View {
+    let label: String
+    @Binding var value: Double
+    let range: ClosedRange<Double>
+    let step: Double
+    let format: String
+    var scale: Double = 1
+    var width: CGFloat = 100
+
+    init(label: String, value: Binding<Double>, range: ClosedRange<Double>, step: Double, format: String, scale: Double = 1, width: CGFloat = 100) {
+        self.label = label
+        self._value = value
+        self.range = range
+        self.step = step
+        self.format = format
+        self.scale = scale
+        self.width = width
+    }
+
+    init(label: String, value: Binding<CGFloat>, range: ClosedRange<CGFloat>, step: CGFloat, format: String, scale: Double = 1, width: CGFloat = 100) {
+        self.label = label
+        self._value = Binding(get: { Double(value.wrappedValue) }, set: { value.wrappedValue = CGFloat($0) })
+        self.range = Double(range.lowerBound)...Double(range.upperBound)
+        self.step = Double(step)
+        self.format = format
+        self.scale = scale
+        self.width = width
+    }
+
+    var body: some View {
+        HStack {
+            Text(label)
+                .font(.caption)
+            Slider(value: $value, in: range, step: step)
+                .frame(width: width)
+            Text(String(format: format, value * scale))
+                .font(.caption.monospacedDigit())
+                .frame(width: 35)
         }
     }
 }
