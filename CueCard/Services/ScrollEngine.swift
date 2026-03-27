@@ -1,7 +1,7 @@
 import Foundation
-import Combine
 
 @Observable
+@MainActor
 final class ScrollEngine {
     var isScrolling = false
     var currentOffset: CGFloat = 0
@@ -16,10 +16,14 @@ final class ScrollEngine {
     func start() {
         guard !isScrolling else { return }
         isScrolling = true
-        timer = Timer.scheduledTimer(withTimeInterval: 1.0 / 60.0, repeats: true) { [weak self] _ in
-            guard let self else { return }
-            self.currentOffset += self.speed
+        let t = Timer(timeInterval: 1.0 / 60.0, repeats: true) { [weak self] _ in
+            Task { @MainActor in
+                guard let self else { return }
+                self.currentOffset += self.speed
+            }
         }
+        RunLoop.main.add(t, forMode: .common)
+        timer = t
     }
 
     func pause() {
@@ -38,7 +42,9 @@ final class ScrollEngine {
         if currentOffset < 0 { currentOffset = 0 }
     }
 
-    deinit {
-        timer?.invalidate()
+    nonisolated func cleanup() {
+        MainActor.assumeIsolated {
+            timer?.invalidate()
+        }
     }
 }
