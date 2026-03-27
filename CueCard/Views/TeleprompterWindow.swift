@@ -6,23 +6,22 @@ struct TeleprompterWindow: View {
     @Environment(ScriptStorage.self) private var storage
     @Environment(ScrollEngine.self) private var scrollEngine
 
+    @State private var cachedDisplayText: String = ""
+
     var body: some View {
         ZStack {
-            // Frosted glass background
             VisualEffectBackground(opacity: settings.backgroundOpacity)
                 .ignoresSafeArea()
 
             VStack(spacing: 0) {
-                // Drag handle bar at top
                 DragHandleBar()
 
-                // Script content
                 GeometryReader { geometry in
                     ScrollView(.vertical, showsIndicators: false) {
                         VStack(spacing: 0) {
                             Spacer(minLength: geometry.size.height / 3)
 
-                            Text(displayText)
+                            Text(cachedDisplayText)
                                 .font(.system(size: settings.fontSize, weight: .medium, design: .default))
                                 .foregroundStyle(settings.textColor)
                                 .multilineTextAlignment(.center)
@@ -39,7 +38,6 @@ struct TeleprompterWindow: View {
                     ))
                 }
 
-                // Scroll progress indicator
                 if scrollEngine.isScrolling {
                     HStack(spacing: 6) {
                         Circle()
@@ -79,17 +77,18 @@ struct TeleprompterWindow: View {
         }
         .focusable()
         .animation(.easeInOut(duration: 0.2), value: scrollEngine.isScrolling)
+        .onAppear { updateDisplayText() }
+        .onChange(of: storage.currentScript?.body) { updateDisplayText() }
     }
 
-    private var displayText: String {
+    private func updateDisplayText() {
         guard let script = storage.currentScript else {
-            return "No script loaded.\n\nClick the CueCard menu bar icon to load a script."
+            cachedDisplayText = "No script loaded.\n\nClick the CueCard menu bar icon to load a script."
+            return
         }
-        return MarkdownStripper.strip(script.body)
+        cachedDisplayText = MarkdownStripper.strip(script.body)
     }
 }
-
-// MARK: - Drag Handle Bar
 
 private struct DragHandleBar: View {
     var body: some View {
@@ -105,8 +104,6 @@ private struct DragHandleBar: View {
         .gesture(WindowDragGesture())
     }
 }
-
-// MARK: - Visual Effect Background (frosted glass)
 
 struct VisualEffectBackground: NSViewRepresentable {
     var opacity: Double
