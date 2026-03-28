@@ -7,7 +7,6 @@ struct MenuBarView: View {
     @Environment(WindowManager.self) private var windowManager
     @Environment(\.openWindow) private var openWindow
     @Environment(\.dismissWindow) private var dismissWindow
-    @State private var teleprompterVisible = false
 
     var body: some View {
         @Bindable var settings = settings
@@ -46,14 +45,21 @@ struct MenuBarView: View {
 
             Divider()
 
-            Button(teleprompterVisible ? "Hide Teleprompter" : "Show Teleprompter") {
-                if teleprompterVisible {
+            Button(windowManager.isVisible ? "Hide Teleprompter" : "Show Teleprompter") {
+                if windowManager.isVisible {
                     scrollEngine.pause()
-                    dismissWindow(id: "teleprompter")
+                    if windowManager.window != nil {
+                        windowManager.hide()
+                    } else {
+                        dismissWindow(id: "teleprompter")
+                    }
                 } else {
-                    openWindow(id: "teleprompter")
+                    if windowManager.window != nil {
+                        windowManager.show()
+                    } else {
+                        openWindow(id: "teleprompter")
+                    }
                 }
-                teleprompterVisible.toggle()
             }
             .keyboardShortcut("t", modifiers: .command)
 
@@ -82,6 +88,7 @@ struct MenuBarView: View {
 
     private func resizeAndSave() {
         windowManager.resize(width: settings.windowWidth, height: settings.windowHeight)
+        windowManager.savePosition()
         settings.save()
     }
 }

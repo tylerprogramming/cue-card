@@ -39,11 +39,12 @@ struct CueCardApp: App {
         .defaultSize(width: 400, height: 300)
         .windowResizability(.contentMinSize)
 
-        Window("Script Editor", id: "editor") {
+        WindowGroup("Script Editor", id: "editor") {
             ScriptEditorView()
                 .environment(settings)
                 .environment(storage)
         }
         .defaultSize(width: 500, height: 600)
+        .windowResizability(.contentMinSize)
     }
 }
