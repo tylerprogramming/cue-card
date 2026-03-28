@@ -1,15 +1,24 @@
 import SwiftUI
 import AppKit
 
-/// Holds a reference to the NSWindow so we can resize it directly.
+/// Borderless NSWindow subclass that removes macOS positioning constraints,
+/// allowing the window to be placed anywhere including above the menu bar.
+class UnconstrainedWindow: NSWindow {
+    override func constrainFrameRect(_ frameRect: NSRect, to screen: NSScreen?) -> NSRect {
+        return frameRect
+    }
+}
+
 @Observable
 @MainActor
 final class WindowManager {
     var window: NSWindow?
+    var isVisible: Bool = false
+
+    private let positionKey = "cuecard_window_position"
 
     func resize(width: CGFloat, height: CGFloat) {
         guard let window else { return }
-        // Pin top-left: keep maxY and minX constant
         let topY = window.frame.maxY
         let x = window.frame.origin.x
         let newOriginY = topY - height
@@ -24,10 +33,32 @@ final class WindowManager {
         window.hasShadow = false
         window.isMovableByWindowBackground = true
         window.collectionBehavior.insert(.canJoinAllSpaces)
-        window.setFrameAutosaveName("CueCardTeleprompter")
-        if UserDefaults.standard.string(forKey: "NSWindow Frame CueCardTeleprompter") == nil {
+        isVisible = true
+
+        // Restore saved position or default to near notch
+        if let saved = loadPosition() {
+            DispatchQueue.main.async {
+                window.setFrame(saved, display: true)
+            }
+        } else {
             positionNearNotch()
         }
+    }
+
+    func show() {
+        guard let window else { return }
+        window.orderFront(nil)
+        if let saved = loadPosition() {
+            window.setFrame(saved, display: true)
+        }
+        isVisible = true
+    }
+
+    func hide() {
+        guard let window else { return }
+        savePosition()
+        window.orderOut(nil)
+        isVisible = false
     }
 
     func positionNearNotch() {
@@ -35,6 +66,23 @@ final class WindowManager {
         let x = screen.midX - window.frame.width / 2
         let y = screen.maxY - window.frame.height
         window.setFrameOrigin(NSPoint(x: x, y: y))
+        savePosition()
+    }
+
+    func savePosition() {
+        guard let window else { return }
+        let f = window.frame
+        let dict: [String: CGFloat] = ["x": f.origin.x, "y": f.origin.y, "w": f.width, "h": f.height]
+        UserDefaults.standard.set(dict, forKey: positionKey)
+    }
+
+    private func loadPosition() -> NSRect? {
+        guard let dict = UserDefaults.standard.dictionary(forKey: positionKey),
+              let x = dict["x"] as? CGFloat,
+              let y = dict["y"] as? CGFloat,
+              let w = dict["w"] as? CGFloat,
+              let h = dict["h"] as? CGFloat else { return nil }
+        return NSRect(x: x, y: y, width: w, height: h)
     }
 }
 
