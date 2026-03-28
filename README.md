@@ -6,13 +6,15 @@ A macOS teleprompter app that floats near your camera so you can read scripts wh
 
 - **Floating overlay** - always-on-top borderless window with frosted glass background
 - **Auto-scroll** - smooth 60fps scrolling at adjustable speed (0.1x - 5.0x)
+- **3-2-1 countdown** - countdown timer before scrolling starts so you can get settled
+- **Section navigation** - split scripts with `##` headings or `---` dividers, jump between sections with left/right arrow keys
+- **Read-here line** - centered guide line to help calibrate scroll speed to your speaking pace
 - **Menu bar app** - no dock icon, all controls live in the menu bar
-- **Draggable** - drag the window anywhere on screen
-- **Resizable** - adjust width and height from the menu bar or drag edges
-- **Snap to notch** - defaults to top-center near your camera on first launch
-- **Markdown stripping** - load .md scripts and stage directions are removed automatically
-- **Keyboard shortcuts** - space (play/pause), arrows (scroll), escape (hide)
-- **Persistent settings** - font size, opacity, speed, window size all saved between launches
+- **Draggable** - drag the window anywhere on screen, including right up to the notch
+- **Resizable** - adjust width and height from the menu bar sliders
+- **Show/Hide toggle** - hide the teleprompter without quitting, position is remembered
+- **Markdown stripping** - load .md scripts and formatting/stage directions are removed automatically
+- **Persistent settings** - font size, opacity, speed, window size, and position all saved between launches
 - **Works across Spaces** - teleprompter follows you to any desktop
 
 ## Requirements
@@ -24,7 +26,7 @@ A macOS teleprompter app that floats near your camera so you can read scripts wh
 ## Setup
 
 ```bash
-git clone <repo-url> && cd cuecard
+git clone https://github.com/tylerprogramming/cue-card.git && cd cue-card
 xcodegen generate
 open CueCard.xcodeproj
 ```
@@ -45,16 +47,40 @@ The built app will be in `~/Library/Developer/Xcode/DerivedData/CueCard-*/Build/
 1. Click the CueCard icon in the menu bar
 2. Click **Edit Script** to paste or load a script (.md or .txt)
 3. Click **Show Teleprompter** to open the floating window
-4. Press **Space** to start auto-scrolling
+4. Press **Space** for a 3-2-1 countdown, then auto-scrolling begins
 5. Adjust speed, font size, opacity, and window size from the menu bar
+
+### Script Sections
+
+Use `##` headings or `---` dividers in your script to create sections:
+
+```markdown
+## Intro
+
+Hey everyone, welcome back to the channel.
+
+---
+
+## Main Topic
+
+Today we're building something cool.
+
+## Wrap Up
+
+That's it, see you in the next one.
+```
+
+Sections show titles, dot dividers between them, and a section counter (e.g. "1/3") in the status bar. Use left/right arrow keys to jump between sections.
 
 ### Keyboard Shortcuts
 
 | Key | Action |
 |-----|--------|
-| Space | Play / Pause scroll |
+| Space | Start countdown / Pause scroll |
 | Up Arrow | Scroll up |
 | Down Arrow | Scroll down |
+| Left Arrow | Previous section |
+| Right Arrow | Next section |
 | Escape | Hide teleprompter |
 | Cmd+T | Toggle teleprompter (from menu bar) |
 
@@ -71,10 +97,10 @@ CueCard/
     ScriptEditorView.swift   # Script editor with file import
     MenuBarView.swift        # Menu bar control panel
   Services/
-    ScrollEngine.swift       # Timer-driven auto-scroll
-    WindowManager.swift      # NSWindow control, snap-to-edge
+    ScrollEngine.swift       # Timer-driven auto-scroll with countdown
+    WindowManager.swift      # NSWindow control, position persistence
     ScriptStorage.swift      # JSON persistence
-    MarkdownStripper.swift   # Clean markdown for display
+    MarkdownStripper.swift   # Markdown stripping and section parsing
 ```
 
 ## License
