@@ -9,6 +9,11 @@ settings:
   base:
     SWIFT_VERSION: "6.0"
 
+packages:
+  HotKey:
+    url: https://github.com/soffes/HotKey
+    from: "0.2.1"
+
 targets:
   CueCard:
     type: application
@@ -16,6 +21,8 @@ targets:
     deploymentTarget: "15.0"
     sources:
       - path: CueCard
+    dependencies:
+      - package: HotKey
     settings:
       base:
         INFOPLIST_FILE: CueCard/Info.plist
