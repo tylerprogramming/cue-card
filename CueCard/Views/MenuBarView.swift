@@ -64,7 +64,13 @@ struct MenuBarView: View {
             .keyboardShortcut("t", modifiers: .command)
 
             Button("Edit Script") {
-                openWindow(id: "editor")
+                if let editorWindow = NSApp.windows.first(where: { $0.title.contains("Script Editor") }) {
+                    editorWindow.makeKeyAndOrderFront(nil)
+                    NSApp.activate(ignoringOtherApps: true)
+                } else {
+                    openWindow(id: "editor")
+                    NSApp.activate(ignoringOtherApps: true)
+                }
             }
 
             Divider()
