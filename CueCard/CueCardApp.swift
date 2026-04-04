@@ -17,7 +17,7 @@ struct CueCardApp: App {
     }
 
     private func ensureHotkeys() {
-        globalHotkeys.register(scrollEngine: scrollEngine, windowManager: windowManager)
+        globalHotkeys.register(scrollEngine: scrollEngine, windowManager: windowManager, settings: settings)
     }
 
     var body: some Scene {
